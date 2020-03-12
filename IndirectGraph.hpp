@@ -1,3 +1,4 @@
+/*written by yonatan shatil*/
 #pragma once
 #include "Graph.hpp"
 template<class T>
@@ -8,8 +9,8 @@ public:
 	IndirectGraph(std::vector<T> values) :Graph<T>{ values } {}
 	IndirectGraph(IndirectGraph const& other) :Graph<T>{ other._values,other._edges } {}
 	IndirectGraph(Graph<T> const& other);//takes a direct graph and convert it to indirect
-	IndirectGraph(std::vector<T> values, std::vector<std::vector<std::pair<int,double>>> adjVector) :Graph<T>{ values, adjVector } {}
-	IndirectGraph(std::vector<T> values, std::vector<std::vector<int>> adjVector) :Graph<T>{ values,adjVector } {}
+	IndirectGraph(std::vector<T> values, std::vector<std::list<std::pair<int,double>>> adjVector) :Graph<T>{ values, adjVector } {}
+	IndirectGraph(std::vector<T> values, std::vector<std::list<int>> adjVector) :Graph<T>{ values,adjVector } {}
 	IndirectGraph(std::vector<T> values, std::vector<std::pair<std::pair<int, int>, double>> edgesVector);
 	IndirectGraph(std::vector<T> values, std::vector<std::pair<int, int>> edgesVector);
 
@@ -17,12 +18,16 @@ public:
 	inline Graph<T> getTranspose() const { IndirectGraph<T> transpose(this->_values, this->_edges); return transpose; }
 
 	//dynamic indirect graph methods 
-	void addNode(T value, std::vector<int, double>adj);
-	void addNode(T value) { this->_values.push_back(value); this->_edges.push_back(std::vector<std::pair<int, double>>()); }
-	void addEdgeByIndexs(int a, int b,double weight=1) { this->_edges[a].push_back(std::pair<int, double>(b,weight)); this->_edges[b].push_back(std::pair<int,double>(a, weight)); }
+	void addEdgeByIndexs(int a, int b, double weight = 1) {
+		if (!this->is_adjacent(a, b))
+		{ 
+			this->_edges[a].push_back(std::pair<int, double>(b, weight)); 
+			this->_edges[b].push_back(std::pair<int, double>(a, weight)); 
+		} 
+	}
 	void removeEdgeByIndexs(int a, int b)
 	{
-		std::vector<std::pair<int, double>> temp;
+		std::list<std::pair<int, double>> temp;
 		for (auto v : this->_edges[a])
 			if (v.first != b)
 				temp.push_back(v);
@@ -45,7 +50,7 @@ template<class T> int IndirectGraph<T>::edgeNum()const
 template<class T> IndirectGraph<T>::IndirectGraph(Graph<T> const& other)
 {
 	std::vector<std::vector<bool>> e(other.vertNum(), std::vector<bool>(other.vertNum(), false));
-	this->_edges = std::vector<std::vector<std::pair<int,double>>>(other.vertNum(), std::vector<std::pair<int,double>>());
+	this->_edges = std::vector<std::list<std::pair<int,double>>>(other.vertNum(), std::list<std::pair<int,double>>());
 	for (int i = 0; i < other.vertNum(); i++)
 	{
 		this->_values.push_back(other[i]);
